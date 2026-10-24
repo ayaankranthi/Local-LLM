@@ -69,4 +69,13 @@ class CrossEntropyLossWitSoftmax:
         pass
 
 class MultiHeadAttention:
-    pass
+    def __init__(self, dim_in, dim_out, n_heads):
+        self.dim_in = dim_in
+        self.dim_out = dim_out
+        self.n_heads = n_heads
+        
+        self.quary_linear = Linear(dim_in, dim_out, incude_bais = False)
+        self.key_linear = Linear(dim_in, dim_out, incude_bais = False)
+        self.value_linear = Linear(dim_in, dim_out, incude_bais = False)
+        
+        

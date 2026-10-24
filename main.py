@@ -20,7 +20,7 @@ class Embeddinglayer:
     def get_params(self):
         pass
     
-class Softax:
+class Softmax:
     def __init__(self, x):
         self.softmax_out = None
         
@@ -117,8 +117,22 @@ class MultiHeadAttention:
         self.dim_out = dim_out
         self.n_heads = n_heads
         
-        self.quary_linear = Linear(dim_in, dim_out, incude_bais = False)
+        self.query_linear = Linear(dim_in, dim_out, incude_bais = False)
         self.key_linear = Linear(dim_in, dim_out, incude_bais = False)
         self.value_linear = Linear(dim_in, dim_out, incude_bais = False)
+        self.softmax = Softmax()
+        self.final_projection = Linear(dim_in, dim_out, include_bias=False)
+        
+        self.queries_matrix = None
+        self.keys_matrix = None
+        self.values_matrix = None
+        self.attention_weights = None
+        
+    def forward(self, inputs, mask = None):
+        B, T, D = inputs.shape
+        
+        queries = self.query_linear.forward(inputs)
+        keys = self.key_linear.forward(inputs)
+        values = self.value_linear.forward(inputs)
         
         

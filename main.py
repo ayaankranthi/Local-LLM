@@ -67,6 +67,49 @@ class CrossEntropyLossWitSoftmax:
     
     def get_name(self):
         pass
+    
+class Linear:
+    def __init__(self, dim_in, dim_out, include_bias=True):
+        self.weights = np.random.randn(dim_in, dim_out) * np.sqrt(2.0 / (dim_in + dim_out))
+        self.include_bias = include_bias
+        
+        if self.include_bias:
+            self.bias = np.zeros((1, dim_out))
+        else:
+            self.bias = None
+            
+        self.inputs = None
+        self.grad_weights = None
+        self.grad_bias = None
+
+    def forward(self, inputs):
+        self.inputs = inputs 
+        out = np.dot(inputs, self.weights)
+        
+        if self.include_bias:
+            out += self.bias
+            
+        return out
+
+    def backward(self, prev_grad):
+        B, T, D_out = prev_grad.shape
+        inputs_flat = self.inputs.reshape(-1, self.weights.shape[0])
+        grad_flat = prev_grad.reshape(-1, D_out)
+        
+        self.grad_weights = np.dot(inputs_flat.T, grad_flat)
+        
+        if self.include_bias:
+            self.grad_bias = np.sum(grad_flat, axis=0, keepdims=True)
+            
+        grad_inputs = np.dot(prev_grad, self.weights.T)
+        
+        return grad_inputs
+
+    def get_params(self):
+        params = {'W': self.weights}
+        if self.include_bias:
+            params['b'] = self.bias
+        return params
 
 class MultiHeadAttention:
     def __init__(self, dim_in, dim_out, n_heads):

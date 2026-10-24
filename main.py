@@ -67,3 +67,4 @@ class CrossEntropyLossWitSoftmax:
     
     def get_name(self):
         pass
+

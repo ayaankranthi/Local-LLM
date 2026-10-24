@@ -34,7 +34,6 @@ class Softax:
     def backward(self, prev_gead):
       return prev_gead * self.softmax_out - self.softmax_out * np.sum(self.softmax_out * prev_gead, axis=-1, keepdims=True)  
     
-    
 class CrossEntropyLossWitSoftmax:
     def __init__(self):
         self.lse = None

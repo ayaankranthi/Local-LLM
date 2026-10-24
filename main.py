@@ -68,3 +68,5 @@ class CrossEntropyLossWitSoftmax:
     def get_name(self):
         pass
 
+class MultiHeadAttention:
+    pass

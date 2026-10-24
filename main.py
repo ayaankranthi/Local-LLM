@@ -135,4 +135,30 @@ class MultiHeadAttention:
         keys = self.key_linear.forward(inputs)
         values = self.value_linear.forward(inputs)
         
+        queries = np.reshape(queries, (B, T, self.n_heads, self.dim_out // self.n_heads))
+        keys = np.reshape(keys, (B, T, self.n_heads, self.dim_out // self.n_heads))
+        values = np.reshape(values, (B, T, self.n_heads, self.dim_out // self.n_heads))
+        
+        queries = np.transpose(queries, axes=[0, 2, 1, 3])
+        keys = np.transpose(keys, axes=[0, 2, 1, 3])
+        values = np.transpose(values, axes=[0, 2, 1, 3])
+        
+        attention_scores = queries @ np.transpose(keys, axes=[0, 1, 3, 2])
+        attention_scores = attention_scores / np.sqrt(keys.shape[-1])
+        
+        if mask is not None:
+            attention_scores += mask
+            
+        attention_weights = self.softmax.forward(attention_scores)
+        
+        final_vector = attention_scores @ values
+        
+        final_vector = np.transpose(final_vector, axes=[0, 2, 1, 3])
+        final_vector = np.reshape(final_vector, (B, T, self.dim_out))
+        final_vector = self.final_projection.forward(final_vector)
+
+        self.queries_matrix = queries
+        self.keys_matrix = keys
+        self.values_matrix = values
+        self.attention_weights = attention_weights
         

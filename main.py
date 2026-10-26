@@ -161,4 +161,45 @@ class MultiHeadAttention:
         self.keys_matrix = keys
         self.values_matrix = values
         self.attention_weights = attention_weights
+
+class LayerNorm:
+    def __init__(self, input_dim):
+        self.input_dim = input_dim
+        self.gain = np.ones((1, input_dim))
+        self.bais = np.zeros((1, input_dim))
         
+        self.mean = None
+        self.mu = None
+        self.var = None
+        self.std = None
+        self.out = None
+        
+        self.grad_gain = np.zeros(self.gain.shape)
+        self.grad_bais = np.zeros(self.bais.shape)
+        
+    def forward(self, inputs):
+        epsilon = 1e-5
+        self.mean = (1 / self.input_dim) * np.sum(inputs, axis=-1, keepdims=True)
+        self.mu = inputs - self.mean
+        self.var = (1 / self.input_dim) * np.sum(np.square(self.mu))
+        self.std = np.sqrt(self.var + epsilon)
+        self.out = self.gain * (self.mu / self.std) + self.bais
+        
+        return self.out
+    
+    def backward(self, prev_grad):
+        direct_path = prev_grad * (self.gain / self.std)
+        indirect_path = np.sum(
+            (prev_grad[..., np.newaxis] * 1/(self.input_dim) * (self.gain[..., np.newaxis]) * 
+             1/(self.std[..., np.newaxis]) + (np.expand_dims(self.mu, axis=-1) * np.expand_dims(self.mu, axis=-2))/(np.power(se, axis=-2)))
+        )
+        dL_dX = direct_path - indirect_path
+        dL_dGain = np.sum(np.sum(prev_grad * (self.mu / self.std), axis=0, keepdims=True), axis=1)
+    
+        dL_dB = np.sum(np.sum(prev_grad, axis=0, keepdims=True), axis=1)
+        
+        
+        self.grad_gain = dL_dGain
+        self.grad_bais = dL_dB
+        
+        return dL_dX
